@@ -1,0 +1,154 @@
+{
+  "unsecure": {
+    "password": "",
+    "chatLog": [
+      {
+        "sender": "64f80f4b-kYjW2KBFZaI4Q0mXnAudphI",
+        "senderNickname": "hey",
+        "timestamp": 1693978448234,
+        "message": "hello!"
+      }
+    ]
+  },
+  "secure": {
+    "password": "1234",
+    "chatLog": [
+      {
+        "sender": "64f80f71-LC2uDqJmuOtFQVKWmgqKSw4",
+        "senderNickname": "foo",
+        "timestamp": 1693978485588,
+        "message": "omg"
+      }
+    ]
+  },
+  "hello-world": {
+    "password": "1234",
+    "chatLog": [
+      {
+        "sender": "64f81af6-wxjoenxWxpGBb6WZMoyYrL5",
+        "senderNickname": "Foo",
+        "timestamp": 1693981445339,
+        "message": "Welcome!"
+      },
+      {
+        "sender": "64f81af6-wxjoenxWxpGBb6WZMoyYrL5",
+        "senderNickname": "Foo",
+        "timestamp": 1693981481815,
+        "message": "I have some code for you:\n\n```\n\nconsole.log('hello world');\n\n```"
+      },
+      {
+        "sender": "64f81b4d-sirfnlFdoWZCXqHzBsHzBwx",
+        "senderNickname": "Bar",
+        "timestamp": 1693981529933,
+        "message": "Very nice!"
+      },
+      {
+        "sender": "64f836be-dbG6HPWepCQrFkvm3jUlNF9",
+        "senderNickname": "Baz",
+        "timestamp": 1693988557607,
+        "message": " ![](https://media3.giphy.com/media/rqlfq8uZjQFwcR3IpR/200.gif?cid=261bba3akzdjnw0epkhui3567rjasppjhq5ksqefx8l4hy3l&ep=v1_gifs_search&rid=200.gif&ct=g)"
+      }
+    ]
+  },
+  "hey": {
+    "password": "",
+    "chatLog": [
+      {
+        "sender": "64f832b9-NlZb3GXQufon1jsGXDBvLxS",
+        "senderNickname": "hey",
+        "timestamp": 1693987519787,
+        "message": "hello"
+      },
+      {
+        "sender": "64f832f9-gxdyUgRsC7l31adO7sjALFh",
+        "senderNickname": "hey",
+        "timestamp": 1693987582590,
+        "message": "hi!"
+      },
+      {
+        "sender": "64f8334f-Hrb1O6s91vSe5zMFtd7TKtg",
+        "senderNickname": "hey",
+        "timestamp": 1693987670064,
+        "message": "boop"
+      },
+      {
+        "sender": "64f833c2-BwiF3ErzP9yXRTBsFpfDigS",
+        "senderNickname": "hey",
+        "timestamp": 1693987786251,
+        "message": "who me?"
+      },
+      {
+        "sender": "64f833d2-vbBQ1QvBAat4PKenlU5I3TS",
+        "senderNickname": "bar",
+        "timestamp": 1693987801793,
+        "message": "No, me!"
+      },
+      {
+        "sender": "64f833c2-BwiF3ErzP9yXRTBsFpfDigS",
+        "senderNickname": "hey",
+        "timestamp": 1693987807280,
+        "message": "Ha"
+      },
+      {
+        "sender": "64f833c2-BwiF3ErzP9yXRTBsFpfDigS",
+        "senderNickname": "hey",
+        "timestamp": 1693987869040,
+        "message": "Hi bby!"
+      },
+      {
+        "sender": "64f833c2-BwiF3ErzP9yXRTBsFpfDigS",
+        "senderNickname": "hey",
+        "timestamp": 1693987875915,
+        "message": "meow"
+      },
+      {
+        "sender": "64f83412-v8VJnOwb4BmX0wwdYp2HlaC",
+        "senderNickname": "Whatever you want",
+        "timestamp": 1693987885773,
+        "message": "lol"
+      },
+      {
+        "sender": "64f833d2-vbBQ1QvBAat4PKenlU5I3TS",
+        "senderNickname": "bar",
+        "timestamp": 1693987894238,
+        "message": "meow meow!"
+      },
+      {
+        "sender": "64f83412-v8VJnOwb4BmX0wwdYp2HlaC",
+        "senderNickname": "Whatever you want",
+        "timestamp": 1693987906873,
+        "message": "👍🏼"
+      },
+      {
+        "sender": "64f83412-v8VJnOwb4BmX0wwdYp2HlaC",
+        "senderNickname": "Whatever you want",
+        "timestamp": 1693987922156,
+        "message": " ![](https://media1.giphy.com/media/wG1x74L4y0txK/200.gif?cid=261bba3aq3fafjv37bw5hmztqh7zq9phaix66fy18q8ewi76&ep=v1_gifs_search&rid=200.gif&ct=g)"
+      },
+      {
+        "sender": "64f834fb-6gtH4dtrLvSbjuWf9DRwgVL",
+        "senderNickname": "bar",
+        "timestamp": 1693988098816,
+        "message": "Ok"
+      },
+      {
+        "sender": "64f834f0-o0BBrLBJBbQVmJBJTFAL2zY",
+        "senderNickname": "hey",
+        "timestamp": 1693988127300,
+        "message": "all works"
+      },
+      {
+        "sender": "64f834f0-o0BBrLBJBbQVmJBJTFAL2zY",
+        "senderNickname": "hey",
+        "timestamp": 1693988166213,
+        "message": "hey"
+      },
+      {
+        "sender": "64f834f0-o0BBrLBJBbQVmJBJTFAL2zY",
+        "senderNickname": "hey",
+        "timestamp": 1693988177840,
+        "message": "wunderbar"
+      }
+    ]
+  }
+}

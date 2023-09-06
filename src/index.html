@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Chat</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
+  <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/axios@1.5.0/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@8.0.0/lib/marked.umd.min.js"></script>
+  "/assets/css/tailwind.css"
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-50">
+  <div id="app" class="relative w-full h-full">
+    <audio ref="chatMessageWav" src="/chat-message.wav"></audio>
+    <audio ref="participantsUpdateWav" src="/participants-update.wav"></audio>
+    <div class="header absolute w-full flex bg-gray-200 dark:bg-gray-700 p-2 z-40">
+      <div class="flex-1 m-4 sm:m-0">
+        <button
+          class="info-button flex items-center dark:hover:bg-sky-700 hover:bg-sky-200"
+          @click="toggleInfo"
+        >
+          "/assets/icons/information.svg"
+        </button>
+      </div>
+      <!-- controls -->
+      <div class="block flex items-center justify-end gap-4 m-4 sm:m-0">
+        <button
+          class="menu-button flex items-center dark:hover:bg-sky-700 hover:bg-sky-200"
+          @click="toggleScramble"
+        >
+          <span v-if="scramble">
+            "/assets/icons/eye-close.svg"
+          </span>
+          <span v-else>
+            "/assets/icons/eye.svg"
+          </span>
+        </button>
+        <button
+          class="menu-button flex items-center dark:hover:bg-sky-700 hover:bg-sky-200"
+          @click="toggleParticipants"
+        >
+          "/assets/icons/group.svg"
+        </button>
+      </div>
+    </div>
+    <div
+      class="info absolute top-24 lg:top-12 left-4 bg-gray-300 dark:bg-gray-700 shadow-lg p-8 rounded-lg z-40"
+      v-if="showInfo"
+      v-click-outside="closeInfo"
+    >
+      <h2 class="text-xl font-bold mb-2">Made with ❤ by Simply Hexagonal</h2>
+      <p class="mb-8">
+        <a
+          class="text-indigo-700 dark:text-indigo-300"
+          target="_blank"
+          href="https://simplyhexagonal.org"
+        >
+          website
+        </a>
+        <span> | </span>
+        <a
+          class="text-indigo-700 dark:text-indigo-300"
+          target="_blank"
+          href="https://github.com/simplyhexagonal"
+        >
+          github
+        </a>
+      </p>
+      <p class="mb-2">
+        Built using:
+      </p>
+      <ul class="list-disc list-inside pl-2">
+        <li>
+          <a
+            class="text-indigo-700 dark:text-indigo-300"
+            target="_blank"
+            href="https://www.fastify.io/"
+          >
+            Fastify
+          </a>
+        </li>
+        <li>
+          <a
+            class="text-indigo-700 dark:text-indigo-300"
+            target="_blank"
+            href="https://vuejs.org/"
+          >
+            Vue JS
+          </a>
+        </li>
+        <li>
+          <a
+            class="text-indigo-700 dark:text-indigo-300"
+            target="_blank"
+            href="https://tailwindcss.com/"
+          >
+            Tailwind CSS
+          </a>
+        </li>
+        <li>
+          <a
+            class="text-indigo-700 dark:text-indigo-300"
+            target="_blank"
+            href="https://axios-http.com/"
+          >
+            Axios
+          </a>
+        </li>
+        <li>
+          <a
+            class="text-indigo-700 dark:text-indigo-300"
+            target="_blank"
+            href="https://remixicon.com/"
+          >
+            Remix Icon
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div v-if="loading" class="flex pt-[104px] lg:pt-[52px] pb-4 px-5">
+      <div
+        class="loader text-white rounded-lg flex items-center"
+      >
+        <div></div><div></div><div></div>
+      </div>
+      <div class="pl-8">
+        Connecting...
+      </div>
+    </div>
+    <div
+      v-if="!loading"
+      class="relative h-full overflow-hidden"
+    >
+      <div class="flex flex-col h-full lg:text-xl">
+        <div class="flex flex-row grow pt-[75px] lg:pt-[40px]">
+          <div class="bg-white dark:bg-black grow p-8 h-0 min-h-full overflow-y-scroll">
+            <div>
+              <div v-for="chatMessage in chatLog" class="chat chat-start mb-8 group">
+                <div
+                  class="chat-header text-lg font-bold"
+                  :class="{
+                    'text-success': isMyUid(chatMessage.sender),
+                  }"
+                >
+                  {{ chatMessage.senderNickname || nicknameFromUid(chatMessage.sender) || '❌ Unknown' }}
+                  <time class="text-sm opacity-50">
+                    {{ DateTime.fromMillis(chatMessage.timestamp).toFormat('yyyy-MM-dd@HH:mm') }}
+                  </time>
+                </div>
+                <div
+                  v-if="scramble"
+                  class="chat-bubble text-white block group-hover:hidden"
+                  v-html="parseChatMessage(chatMessage.message, true)"
+                ></div>
+                <div
+                  v-if="scramble"
+                  class="chat-bubble text-white hidden group-hover:block"
+                  v-html="parseChatMessage(chatMessage.message)"
+                ></div>
+                <div
+                  v-else
+                  class="chat-bubble text-white"
+                  v-html="parseChatMessage(chatMessage.message)"
+                ></div>
+              </div>
+            </div>
+            <div ref="chatLogBottom"></div>
+          </div>
+          <div
+            class="bg-base-200 transition-all duration-700"
+            :class="{
+              'w-0 p-0': !showParticipants,
+              'w-[33%] lg:w-[25%] p-2 lg:p-8': showParticipants,
+            }"
+          >
+            <h2 class="text-xl font-bold mb-2">Participants</h2>
+            <ul
+              class="transition-all duration-700"
+              :class="{'scale-0': !showParticipants, 'scale-100': showParticipants}"
+            >
+              <li class="btn btn-ghost w-full text-left items-left justify-start">
+                &gt; <span class="text-success">{{ nickname }}</span>
+              </li>
+              <li class="btn btn-ghost w-full text-left items-left justify-start" v-for="client in clients">
+                &gt; <span>{{ client }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="flex flex-row h-32 bg-base-300">
+          <div v-if="GIF_API_KEY" class="flex items-center justify-center pl-2 lg:pl-8">
+            <button
+              class="btn btn-success"
+              @click="() => showGiphyModal = true"
+            >
+              GIF
+            </button>
+          </div>
+          <div class="flex items-center justify-center flex-1 p-2 lg:p-8">
+            <textarea
+              class="textarea w-full h-full text-xl hidden lg:block"
+              v-model="chatMessage"
+              @keydown.enter.exact="sendMessage"
+            ></textarea>
+            <textarea
+              class="textarea w-full h-full lg:hidden"
+              v-model="chatMessage"
+            ></textarea>
+          </div>
+          <div class="flex items-center justify-center pr-2 lg:pr-8">
+            <button
+              class="btn btn-primary"
+              @click="sendMessage"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      v-if="showMessage"
+      class="absolute top-0 right-0 bottom-0 left-0 grid justify-items-center content-center z-50"
+      @click.self="() => closeAlert()"
+    >
+      <div
+        class="alert absolute top-0 left-0 rounded-lg p-5 shadow-lg flex"
+        :class="MESSAGE_COLOR_CLASS_MAP[alert.color]"
+      >
+        <div class="mb-4 text-white flex-1">
+          {{alert.text}}
+        </div>
+        <div class="text-right">
+          <button
+            class="close-alert-button p-4 bg-sky-500 dark:bg-sky-600 text-white rounded-lg"
+            @click="closeAlert"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      v-if="showConnectModal"
+      class="absolute top-0 right-0 bottom-0 left-0 grid justify-items-center content-center z-20"
+    >
+      <div class="card bg-gray-300 dark:bg-gray-700 shadow-xl w-80">
+        <div class="card-body">
+          <h1 class="card-title">Connect</h1>
+          <div class="my-2">
+            <label class="block" for="room-id">Room</label>
+            <input
+              id="room-id"
+              class="input input-bordered w-full"
+              type="text"
+              v-model="roomId"
+            />
+          </div>
+          <div class="my-2">
+            <label class="block" for="room-password">Password</label>
+            <input
+              id="room-password"
+              class="input input-bordered w-full"
+              type="password"
+              v-model="roomPassword"
+            />
+          </div>
+          <div class="my-2">
+            <label class="block" for="nickname">Nickname</label>
+            <input
+              id="nickname"
+              class="input input-bordered w-full"
+              type="text"
+              v-model="nickname"
+              @keydown.enter.exact="connect"
+            />
+          </div>
+          <div class="text-right">
+            <button
+              class="btn btn-primary"
+              @click="connect"
+            >
+              Connect
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      v-if="showGiphyModal"
+      class="absolute top-0 right-0 bottom-0 left-0 grid justify-items-center content-center z-20"
+    >
+      <div class="card bg-gray-300 dark:bg-gray-700 shadow-xl min-w-80">
+        <div class="card-body">
+          <h1 class="card-title">Search Giphy</h1>
+          <div class="flex min-h-[100px] bg-black gap-4 p-4">
+            <a class="cursor-pointer" v-for="g in giphies" @click="addGif(g)">
+              <img :key="g.id" :src="g.images.fixed_height_small.url" />
+            </a>
+          </div>
+          <input class="input input-bordered w-full" name="search" v-model="giphySearchTerm" />
+          <button class="btn btn-primary" @click="performGiphySearch()">Search</button>
+          <button class="btn btn-neutral" @click="() => showGiphyModal = false">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    let worker = new Worker('worker.js');
+
+    const MESSAGE_COLOR_CLASS_MAP = {
+      default: 'bg-gray-300 dark:bg-gray-700',
+      success: 'bg-green-300 dark:bg-green-700',
+      error: 'bg-red-300 dark:bg-red-700',
+    };
+
+    const app = createApp({
+      data: () => (
+        {
+          GIF_API_KEY: 'GIPHY_API_KEY',
+          DateTime: luxon.DateTime,
+          MESSAGE_COLOR_CLASS_MAP,
+          loading: true,
+          showInfo: false,
+          showMenu: false,
+          showMessage: false,
+          showConnectModal: true,
+          showGiphyModal: false,
+          showParticipants: true,
+          scramble: false,
+          alert: {
+            text: '',
+            color: 'default',
+            postCloseAction: null,
+          },
+          roomId: '',
+          roomPassword: '',
+          nickname: '',
+          uid: '',
+          clients: [],
+          chatMessage: '',
+          chatLog: [],
+          giphySearchTerm: '',
+          giphies: [],
+        }
+      ),
+      methods: {
+        toggleInfo() {
+          this.showInfo = !this.showInfo;
+        },
+        closeInfo() {
+          this.showInfo = false;
+        },
+        toggleMenu() {
+          this.showMenu = !this.showMenu;
+        },
+        closeAlert() {
+          this.showMessage = false;
+
+          if (this.alert.postCloseAction) {
+            this.alert.postCloseAction();
+          }
+        },
+        toggleParticipants() {
+          this.showParticipants = !this.showParticipants;
+        },
+        sendMessage(e) {
+          e.preventDefault();
+
+          if (!this.chatMessage) {
+            return;
+          }
+
+          worker.postMessage(
+            {
+              request: 'message',
+              data: {
+                message: this.chatMessage.replace(/\n/g, '\n\n'),
+              },
+            },
+          );
+
+          this.chatMessage = '';
+        },
+        nicknameFromUid(uid) {
+          return this.isMyUid(uid) ? this.nickname : this.clients[uid];
+        },
+        isMyUid(uid) {
+          return uid === this.uid;
+        },
+        connect() {
+          if ((/\S/).test(this.roomId) && (/\S/).test(this.nickname)) {
+            worker.postMessage(
+              {
+                request: 'connect',
+                host: window.location.host,
+                roomId: this.roomId,
+                roomPassword: this.roomPassword,
+                nickname: this.nickname,
+              },
+            );
+          } else {
+            this.alert = {
+              text: 'Please enter a room ID and nickname.',
+              color: 'error',
+              postCloseAction: null,
+            };
+
+            this.showMessage = true;
+
+            setTimeout(
+              () => this.showMessage = false,
+              3000,
+            );
+          }
+        },
+        performGiphySearch() {
+          const randomOffset = Math.floor(Math.random() * 100);
+          const apiLink = `https://api.giphy.com/v1/gifs/search?api_key=${this.GIF_API_KEY}&limit=3&offset=${randomOffset}&rating=g&lang=en&q=${this.giphySearchTerm}`;
+
+          axios
+            .get(apiLink)
+            .then((response) => {
+              this.giphies = response.data.data;
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+        },
+        addGif(gif) {
+          this.chatMessage = `${this.chatMessage} ![](${gif.images.fixed_height.url})`;
+          this.showGiphyModal = false;
+        },
+        parseChatMessage(message, scramble) {
+          let htmlMessage = marked.parse(message);
+
+          if (scramble) {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const charactersLength = characters.length;
+
+            htmlMessage = htmlMessage.replace(
+              /(<[^>]*>)|([^<>]+)/g,
+              (match, p1, p2) => {
+                if (p1) {
+                  // This is an HTML tag, leave it untouched
+                  return p1;
+                }
+
+                if (p2) {
+                  // This is text outside an HTML tag, replace if it matches the search text
+                  return p2.replace(
+                    /\S/g,
+                    (m) => characters.charAt(Math.floor(Math.random() * charactersLength)),
+                  );
+                }
+
+                return match; // Shouldn't reach here, but return the original match as a fallback
+              }
+            );
+          }
+
+          return htmlMessage;
+        },
+        toggleScramble() {
+          this.scramble = !this.scramble;
+        },
+        playChatMessageSound() {
+          this.$refs.chatMessageWav.play();
+        },
+        playParticipantsUpdateSound() {
+          this.$refs.participantsUpdateWav.play();
+        },
+      },
+      mounted() {
+        worker.onmessage = (event) => {
+          const {
+            request,
+            response,
+            broadcast,
+            status,
+            data,
+          } = event.data;
+
+          if (response && response === 'connected') {
+            this.uid = data.uid;
+
+            const { [`${data.uid}`]: me, ...rest} = data.clients;
+
+            this.clients = {...rest};
+
+            this.nickname = me;
+
+            this.alert = {
+              text: 'Connected successfully!',
+              color: 'success',
+              postCloseAction: null,
+            };
+
+            this.loading = false;
+            this.showConnectModal = false;
+            this.showMessage = true;
+
+            setTimeout(
+              () => this.showMessage = false,
+              3000,
+            );
+
+            return;
+          }
+
+          if (request && request === 'ping') {
+            const { [`${data.uid}`]: me, ...rest} = data.clients;
+
+            if (JSON.stringify(rest) !== JSON.stringify(this.clients)) {
+              this.clients = {...rest};
+              this.playParticipantsUpdateSound();
+            }
+
+            this.nickname = me;
+
+            // console.log('Clients list refreshed:', this.clients);
+
+            return;
+          }
+
+          if (broadcast && broadcast === 'message') {
+            const {clients, uid, ...chatMessage} = data;
+
+            const { [`${data.uid}`]: me, ...rest} = clients;
+
+            this.clients = {...rest};
+
+            this.nickname = me;
+
+            this.chatLog.push(chatMessage);
+
+            console.log(this.chatLog);
+
+            setTimeout(
+              () => {
+                this.$refs.chatLogBottom.scrollIntoView({ behavior: 'smooth' });
+                if (chatMessage.sender !== this.uid) {
+                  this.playChatMessageSound();
+                }
+              },
+              100,
+            );
+
+            return;
+          }
+
+          if (broadcast && broadcast === 'chatLog') {
+            this.chatLog = data.chatLog;
+
+            setTimeout(
+              () => this.$refs.chatLogBottom.scrollIntoView({ behavior: 'smooth' }),
+              100,
+            );
+
+            return;
+          }
+
+          if (status && status === 'disconnected') {
+            this.showConnectModal = true;
+
+            return;
+          }
+        };
+      },
+    });
+    
+    app.directive(
+      'click-outside',
+      (el, binding, vnode) => {
+        document.addEventListener('click', (event) => {
+          if (
+            el.contains(event.target)
+            || (/info/).test(event.target.className)
+            || (/info/).test((event.target.parentElement || {}).className)
+            || (/info/).test(((event.target.parentElement || {}).parentElement || {}).className)
+            || (/upload/).test(event.target.className)
+            || (/upload/).test((event.target.parentElement || {}).className)
+            || (/upload/).test(((event.target.parentElement || {}).parentElement || {}).className)
+          ) {
+            return;
+          }
+          binding.value(event);
+        });
+      },
+    );
+    
+    app.mount('#app');
+  </script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      box-sizing: radius-box;
+      font-family: sans-serif;
+      font-size: 16px;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    a {
+      color: rgb(67 56 202 / 1);
+    }
+    #app {
+      overflow-x: auto;
+      overflow-y: scroll;
+    }
+    svg {
+      display: inline-block;
+      fill: currentColor;
+    }
+    .loader {
+      display: inline-block;
+      position: relative;
+    }
+    .loader div {
+      display: inline-block;
+      position: absolute;
+      top: 2.4px;
+      left: 2.4px;
+      width: 4.8px;
+      background: #fff;
+      animation: loader 1.2s cubic-bezier(0, 0.5, 0.5, 1) infinite;
+    }
+    .loader div:nth-child(1) {
+      left: 2.4px;
+      animation-delay: -0.24s;
+    }
+    .loader div:nth-child(2) {
+      left: 9.6px;
+      animation-delay: -0.12s;
+    }
+    .loader div:nth-child(3) {
+      left: 16.8px;
+      animation-delay: 0;
+    }
+    .chat-bubble pre {
+      padding: 0 2rem 2rem 2rem;
+      background-color: #2c292d;
+      border: 1px solid #908e8f;
+      border-radius: 3px;
+    }
+    .chat-bubble code {
+      background-color: #2c292d;
+      color: #a9dc76;
+      border: 1px solid #908e8f;
+      border-radius: 3px;
+      padding: 0.25rem;
+    }
+    .chat-bubble pre code {
+      border: none;
+      padding: 0;
+    }
+    @keyframes loader {
+      0% {
+        top: 2.4px;
+        height: 19.2px;
+      }
+      50%, 100% {
+        top: 7.2px;
+        height: 9.6px;
+      }
+    }
+    @media (prefers-color-scheme: dark) {
+      a {
+        color: rgb(165 180 252 / 1);
+      }
+    }
+  </style>
+</body>
+</html>

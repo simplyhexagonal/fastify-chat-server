@@ -1,0 +1,48 @@
+{
+  "name": "@simplyhexagonal/fastify-chat-server",
+  "version": "1.0.0",
+  "description": "Simple Websockets chat server including client UI",
+  "contributors": [
+    {
+      "name": "Jean M. Lescure",
+      "email": "opensource@jeanlescure.io",
+      "url": "http://jeanlescure.io/"
+    }
+  ],
+  "main": "dist/index.js",
+  "bin": {
+    "fastify-chat-server": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "package.json",
+    "README.md"
+  ],
+  "scripts": {
+    "tailwind": "npx tailwindcss -i ./src/tailwind.css -o ./src/assets/css/tailwind.css",
+    "dev": "rm -rf ./dist && mkdir -p dist && ./scripts/dev",
+    "build": "rm -rf ./dist && mkdir -p dist && ./scripts/build && cp ./src/worker.js ./dist/worker.js && cp -r ./src/assets ./dist/assets",
+    "postbuild": "npx rollup@3.18.0 ./dist/index.js --file ./dist/index.js --format cjs && ./scripts/binify && chmod +x dist/index.js"
+  },
+  "author": "Jean M. Lescure",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@fastify/websocket": "^8.2.0",
+    "@minify-html/node": "^0.11.1",
+    "@types/node": "^20.5.9",
+    "@types/ws": "^8.5.5",
+    "axios": "^1.5.0",
+    "daisyui": "^3.6.5",
+    "dotenv": "^16.3.1",
+    "esbuild": "^0.19.2",
+    "fastify": "^4.22.2",
+    "glob": "^10.3.4",
+    "livereload": "^0.9.3",
+    "node-html-parser": "^6.1.6",
+    "nodemon": "^3.0.1",
+    "short-unique-id": "^5.0.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2",
+    "yargs": "^17.7.2"
+  }
+}

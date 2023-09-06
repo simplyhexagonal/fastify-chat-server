@@ -1,0 +1,114 @@
+#!/usr/bin/env node
+
+require('dotenv').config();
+const fs = require('fs');
+const { build } = require('esbuild');
+const { parse: parseHtml } = require('node-html-parser');
+const axios = require('axios');
+const { minify } = require('@minify-html/node');
+
+const isDev = process.env.NODE_ENV === 'dev';
+const livePort = process.env.LIVE_PORT || 35729;
+
+const fileSrcPath = `src/index.ts`;
+const fileDir = (
+  fileSrcPath === 'src/index.ts'
+) ? (
+  ''
+) : (
+  [fileSrcPath.replace(/^src\//, '').replace(/\/[^\/]+.ts$/, ''), '/'].join('')
+);
+const fileName = fileSrcPath.replace(/^.+\/([^\/]+).ts$/, '$1');
+
+const outfile = `./dist/${fileDir}${fileName}.js`;
+
+let htmlEmbedPlugin = {
+  name: 'example',
+  async setup(currentBuild) {
+    // Load ".txt" files and return an array of words
+    currentBuild.onLoad(
+      { filter: /\.ts$/ },
+      async (
+        {path: tsPath},
+      ) => {
+        let contents = fs.readFileSync(tsPath, 'utf8');
+
+        let html = fs.readFileSync('./src/index.html', 'utf8');
+
+        const parsedHtml = parseHtml(html);
+
+        await parsedHtml.querySelectorAll('script').reduce(
+          async (a, script) => {
+            await a;
+
+            const src = script.getAttribute('src');
+
+            if (src) {
+              // use axios to get the script
+              const scriptContent = await axios.get(src).then(
+                (res) => res.data.replace(/\/\/#\s*sourceMappingURL=\S+.map/g, '')
+              );
+              
+              // replace the script tag with the script content
+              script.replaceWith(`<script>${scriptContent}</script>`);
+            }
+
+            return Promise.resolve();
+          },
+          Promise.resolve(),
+        );
+
+        let resultHtml = parsedHtml.toString();
+
+        resultHtml = resultHtml.replace(/[`\\$]/g, '\\$&');
+
+        if (isDev) {
+          resultHtml = resultHtml.replace(
+              '</body>',
+              `
+              <script>
+                document.write(
+                  '<script src="' + window.location.protocol + '//' + window.location.hostname + ':${livePort}/livereload.js?snipver=1"></' + 'script>'
+                )
+              </script></body>
+              `,
+          );
+        }
+
+        const minified = minify(
+          Buffer.from(resultHtml),
+          { keep_spaces_between_attributes: true, keep_comments: false },
+        );
+
+        contents = contents.replace(
+          /let html = [^;]+;/,
+          () => `let html = \`${minified}\`;`,
+        );
+
+        return {
+          contents,
+          loader: 'ts',
+        };
+      }
+    )
+  },
+}
+
+const options = {
+  entryPoints: [fileSrcPath],
+  outfile,
+  bundle: true,
+  external: [],
+  minify: true,
+  platform: 'node',
+  sourcemap: false,
+  plugins: [htmlEmbedPlugin],
+};
+
+const main = async () => {
+  const { errors, warnings } = await build(options);
+  warnings.forEach((w) => console.warn(w));
+  errors.forEach((e) => console.error(e));
+};
+
+main();
