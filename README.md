@@ -61,12 +61,15 @@ Optionally you can set other options using CLI arguments:
 
 ```sh
 Options:
-      --version  Show version number                                   [boolean]
-      --port     Port number to listen on               [number] [default: 3000]
-      --host     Host name to bind to (use '0.0.0.0' to expose to the network)
-                                                 [string] [default: "127.0.0.1"]
-      --store    Store chat messages in chats.json    [boolean] [default: false]
-  -h, --help     Show help                                             [boolean]
+      --version        Show version number                             [boolean]
+      --port           Port number to listen on         [number] [default: 3000]
+      --host           Host name to bind to (use '0.0.0.0' to expose to the netw
+                       ork)                      [string] [default: "127.0.0.1"]
+      --store          Store chat messages in chats.json
+                                                      [boolean] [default: false]
+      --giphy-api-key  Giphy API key (https://developers.giphy.com/docs/api/)
+                                                          [string] [default: ""]
+  -h, --help           Show help                                       [boolean]
 ```
 
 And environment variables via `export` command or `.env` file:
