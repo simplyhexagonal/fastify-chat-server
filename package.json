@@ -1,6 +1,10 @@
 {
   "name": "@simplyhexagonal/fastify-chat-server",
   "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/simplyhexagonal/fastify-chat-server"
+  },
   "description": "Simple Websockets chat server including client UI",
   "contributors": [
     {
