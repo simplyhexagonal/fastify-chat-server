@@ -471,3 +471,4 @@ common/autoinstallers/*/.npmrc
 
 # Heft
 .heft
+chats.json

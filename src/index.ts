@@ -100,6 +100,17 @@ html = html.replace(
   },
 );
 
+html = html.replace(
+  /["]\/assets[^"]+\.js["]/g,
+  (match) => {
+    const assetPath = match.replace(/["]/g, '');
+
+    const assetContents = fs.readFileSync(path.join(__dirname, assetPath), 'utf8');
+
+    return `<script>\n${assetContents}\n\t</script>`;
+  },
+);
+
 html = html.replace('GIPHY_API_KEY', giphyApiKey || process.env.GIPHY_API_KEY);
 
 server.register(fastifyWebsocket);

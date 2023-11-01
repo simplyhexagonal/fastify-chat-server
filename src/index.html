@@ -309,6 +309,7 @@
     </div>
   </div>
 
+  "/assets/js/code-copy.js"
   <script>
     const { createApp } = Vue;
 
@@ -318,6 +319,21 @@
       default: 'bg-gray-300 dark:bg-gray-700',
       success: 'bg-green-300 dark:bg-green-700',
       error: 'bg-red-300 dark:bg-red-700',
+    };
+
+    const CODE_BLOCK_REGEX = /(```[\s\S]*?```\n?)|([^\n]*\n?)/g;
+
+    const replaceNewLines = (input) => {
+      return input.replace(CODE_BLOCK_REGEX, (match, codeBlock, textOutside) => {
+        if (codeBlock) {
+          // If it's a code block, return it as is
+          return codeBlock;
+        } else if (textOutside) {
+          // If it's text outside of a code block, replace newlines
+          return textOutside.replace(/\n/g, '<br />\n');
+        }
+        return match; // Fallback, should not reach here
+      });
     };
 
     const app = createApp({
@@ -381,7 +397,7 @@
             {
               request: 'message',
               data: {
-                message: this.chatMessage.replace(/\n/g, '\n\n'),
+                message: replaceNewLines(this.chatMessage),
               },
             },
           );
@@ -540,7 +556,7 @@
 
             this.chatLog.push(chatMessage);
 
-            console.log(this.chatLog);
+            // console.log(this.chatLog);
 
             setTimeout(
               () => {
@@ -572,6 +588,17 @@
             return;
           }
         };
+      },
+      updated() {
+        const preElementsWithoutCopyBtn = document.querySelectorAll('pre:not(.has-copy-btn)');
+
+        if (preElementsWithoutCopyBtn.length) {
+          preElementsWithoutCopyBtn.forEach(
+            (preElement) => {
+              addCopyButton(preElement);
+            },
+          );
+        }
       },
     });
     
@@ -646,21 +673,44 @@
       animation-delay: 0;
     }
     .chat-bubble pre {
-      padding: 0 2rem 2rem 2rem;
-      background-color: #2c292d;
+      padding: 2.5rem 0 0 0;
+      background-color: #000000;
       border: 1px solid #908e8f;
       border-radius: 3px;
+      position: relative;
+    }
+    .chat-bubble pre::before {
+      content: 'Code';
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1rem;
+      color: #908e8f;
+      display: block;
+      position: absolute;
+      top: 0.5rem;
+      left: 0.5rem;
     }
     .chat-bubble code {
       background-color: #2c292d;
       color: #a9dc76;
       border: 1px solid #908e8f;
       border-radius: 3px;
-      padding: 0.25rem;
     }
     .chat-bubble pre code {
       border: none;
       padding: 0;
+      padding: 2rem;
+      display: block;
+      overflow: auto;
+      max-height: 50vh;
+    }
+    .chat-bubble pre .copy-btn {
+      display: block;
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+    }
+    .chat-bubble pre .copy-btn span {
+      display: none;
     }
     @keyframes loader {
       0% {
