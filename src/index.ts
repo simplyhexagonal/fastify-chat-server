@@ -395,6 +395,23 @@ server.addHook('preHandler', async (request, reply) => {
     return;
   }
 
+  // If the requested path is "/manifest.json", return manifest json with header content-type for a json file
+  if (requestedPath.endsWith('/manifest.json')) {
+    reply.type('application/json').send(
+      JSON.stringify(
+        {
+          "name": "Chat",
+          "short_name": "Chat",
+          "start_url": `${request.protocol}://${request.hostname}${request.originalUrl.replace('manifest.json', '')}`,
+          "display": "standalone",
+          "orientation": "portrait",
+          "theme_color": "black",
+        }
+      )
+    );
+    return;
+  }
+
   // If the requested path is a sound, return sound data with header content-type for a wav file
   if (requestedPath === '/chat-message.wav') {
     reply.type('audio/wav').send(chatMessageWav);

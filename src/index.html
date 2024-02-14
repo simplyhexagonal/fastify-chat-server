@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Chat</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
+  <link rel="manifest" href="/manifest.json">
   <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
   <script src="https://unpkg.com/axios@1.5.0/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.3/build/global/luxon.min.js"></script>
@@ -27,6 +28,17 @@
       </div>
       <!-- controls -->
       <div class="block flex items-center justify-end gap-4 m-4 sm:m-0">
+        <button
+          class="menu-button flex items-center dark:hover:bg-sky-700 hover:bg-sky-200"
+          @click="toggleSpeak"
+        >
+          <span v-if="speakOn">
+            "/assets/icons/speak.svg"
+          </span>
+          <span v-else>
+            "/assets/icons/speak-off.svg"
+          </span>
+        </button>
         <button
           class="menu-button flex items-center dark:hover:bg-sky-700 hover:bg-sky-200"
           @click="toggleScramble"
@@ -138,7 +150,7 @@
         <div class="flex flex-row grow pt-[75px] lg:pt-[40px]">
           <div class="bg-white dark:bg-black grow p-8 h-0 min-h-full overflow-y-scroll">
             <div>
-              <div v-for="chatMessage in chatLog" class="chat chat-start mb-8 group">
+              <div v-for="chatMessage in chatLog" class="chat chat-start mb-8 group" v-on:click="speak(getChatMessageText(chatMessage.message), speakOn)">
                 <div
                   class="chat-header text-lg font-bold"
                   :class="{
@@ -336,6 +348,19 @@
       });
     };
 
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance('');
+    utterance.voice = synth.getVoices().find(({voiceURI}) => voiceURI === 'Google US English');
+
+    const speak = (textToSpeak, speakOn) => {
+      if (speakOn === false) {
+        return;
+      }
+
+      utterance.text = textToSpeak;
+      synth.speak(utterance);
+    };
+
     const app = createApp({
       data: () => (
         {
@@ -348,8 +373,9 @@
           showMessage: false,
           showConnectModal: true,
           showGiphyModal: false,
-          showParticipants: true,
+          showParticipants: window.innerWidth > 768,
           scramble: false,
+          speakOn: true,
           alert: {
             text: '',
             color: 'default',
@@ -364,6 +390,7 @@
           chatLog: [],
           giphySearchTerm: '',
           giphies: [],
+          speak,
         }
       ),
       methods: {
@@ -453,6 +480,15 @@
           this.chatMessage = `${this.chatMessage} ![](${gif.images.fixed_height.url})`;
           this.showGiphyModal = false;
         },
+        getChatMessageText(message, scramble) {
+          const htmlMessage = marked.parse(message);
+
+          const div = document.createElement('div');
+
+          div.innerHTML = htmlMessage;
+          
+          return div.innerText;
+        },
         parseChatMessage(message, scramble) {
           let htmlMessage = marked.parse(message);
 
@@ -485,6 +521,9 @@
         },
         toggleScramble() {
           this.scramble = !this.scramble;
+        },
+        toggleSpeak() {
+          this.speakOn = !this.speakOn;
         },
         playChatMessageSound() {
           this.$refs.chatMessageWav.play();
@@ -635,6 +674,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
+      background: #000000;
     }
     a {
       color: rgb(67 56 202 / 1);
