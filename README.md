@@ -65,6 +65,8 @@ Options:
       --port           Port number to listen on         [number] [default: 3000]
       --host           Host name to bind to (use '0.0.0.0' to expose to the netw
                        ork)                      [string] [default: "127.0.0.1"]
+      --secure         Use secure (https/wss) connection
+                                                      [boolean] [default: false]
       --store          Store chat messages in chats.json
                                                       [boolean] [default: false]
       --giphy-api-key  Giphy API key (https://developers.giphy.com/docs/api/)
