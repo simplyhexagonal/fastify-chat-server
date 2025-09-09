@@ -8,7 +8,16 @@
 	"files": {
 		"ignoreUnknown": false,
 		"ignore": [
-			"node_modules"
+			"node_modules",
+			"*/node_modules",
+			"*/**/node_modules",
+			"*/**/dist",
+			"*/**/build",
+			"*/**/.next",
+			"*/**/.nuxt",
+			"*/**/.vite",
+			"*/**/.vitest",
+			"*/**/.storybook"
 		]
 	},
 	"formatter": {
@@ -32,7 +41,12 @@
 			},
 			"correctness": {
 				"noUndeclaredDependencies": "off",
-				"useExhaustiveDependencies": "off"
+				"useExhaustiveDependencies": "off",
+				"noChildrenProp": "off",
+				"noUnknownProperty": "off"
+			},
+			"style": {
+				"noNonNullAssertion": "off"
 			}
 		}
 	},

@@ -40,6 +40,16 @@ const argv = yargs(hideBin(process.argv))
     type: 'boolean',
     default: false,
   })
+  .option('speech-synthesis', {
+    describe: 'Turn on speech synthesis',
+    type: 'boolean',
+    default: false,
+  })
+  .option('allow-duplicate-nicknames', {
+    describe: 'Allow duplicate nicknames',
+    type: 'boolean',
+    default: false,
+  })
   .option('giphy-api-key', {
     describe: 'Giphy API key (https://developers.giphy.com/docs/api/)',
     type: 'string',
@@ -54,6 +64,8 @@ const {
   host,
   secure,
   store,
+  speechSynthesis,
+  allowDuplicateNicknames,
   giphyApiKey,
 } = argv;
 
@@ -61,6 +73,8 @@ const PORT = port || process.env.PORT;
 const HOST = host || process.env.HOST;
 const SECURE = secure || process.env.SECURE;
 const STORE_CHAT = store || process.env.STORE_CHAT;
+const SPEECH_SYNTHESIS = speechSynthesis || process.env.SPEECH_SYNTHESIS;
+const ALLOW_DUPLICATE_NICKNAMES = allowDuplicateNicknames || process.env.ALLOW_DUPLICATE_NICKNAMES;
 const GIPHY_API_KEY = giphyApiKey || process.env.GIPHY_API_KEY;
 
 // const sanitizeErrorString = (errorString: string) => {
@@ -121,7 +135,14 @@ html = html.replace(
   },
 );
 
-html = html.replace('GIPHY_API_KEY', giphyApiKey || process.env.GIPHY_API_KEY);
+html = html.replace('GIPHY_API_KEY', GIPHY_API_KEY);
+
+console.log('SPEECH_SYNTHESIS', SPEECH_SYNTHESIS);
+
+if (!SPEECH_SYNTHESIS) {
+  html = html.replace('!this.speakOn', 'null');
+  html = html.replace('speakOn: true', 'speakOn: null');
+}
 
 if (SECURE) {
   workerJs = workerJs.replace('ws://', 'wss://');
@@ -168,12 +189,10 @@ class Room {
     this.clientPongs = [];
 
     for (const offlineUid of offlineUids) {
-      (offlineUid) => {
-        console.log('Closing connection for:', `${this.clientNicknames.get(offlineUid)} (${offlineUid})`);
-        this.clientNicknames.delete(offlineUid);
-        this.clientConnections.get(offlineUid)?.socket.close();
-        this.clientConnections.delete(offlineUid);
-      }
+      console.log('Closing connection for:', `${this.clientNicknames.get(offlineUid)} (${offlineUid})`);
+      this.clientNicknames.delete(offlineUid);
+      this.clientConnections.get(offlineUid)?.socket.close();
+      this.clientConnections.delete(offlineUid);
     }
 
     if (this.clientConnections.size === 0) {
@@ -193,7 +212,10 @@ class Room {
   protected finalNickname = (nickname: string): string => {
     let finalNickname = nickname;
 
-    if (Array.from(this.clientNicknames.values()).includes(nickname)){
+    if (
+      Array.from(this.clientNicknames.values()).includes(nickname)
+      && !ALLOW_DUPLICATE_NICKNAMES
+    ){
       finalNickname = `${nickname}1`;
       finalNickname = this.finalNickname(finalNickname);
     }
@@ -460,7 +482,7 @@ const pingRoomConnections = () => {
 console.log(`Starting server, version: ${version}`);
 
 // Start the server
-server.listen({port, host}, (error, address) => {
+server.listen({port: PORT, host: HOST}, (error, address) => {
   if (error) {
     console.error(error);
     process.exit(1);

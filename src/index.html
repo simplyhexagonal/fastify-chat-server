@@ -13,11 +13,11 @@
   <script src="https://cdn.jsdelivr.net/npm/marked@8.0.0/lib/marked.umd.min.js"></script>
   "/assets/css/tailwind.css"
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-50">
+<body class="bg-base-100 text-base-content">
   <div id="app" class="relative w-full h-full">
     <audio ref="chatMessageWav" src="/chat-message.wav"></audio>
     <audio ref="participantsUpdateWav" src="/participants-update.wav"></audio>
-    <div class="header absolute w-full flex bg-gray-200 dark:bg-gray-700 p-2 z-40">
+    <div class="header absolute w-full flex bg-base-200 p-2 z-40">
       <div class="flex-1 m-4 sm:m-0">
         <button
           class="info-button flex items-center dark:hover:bg-sky-700 hover:bg-sky-200"
@@ -31,6 +31,7 @@
         <button
           class="menu-button flex items-center dark:hover:bg-sky-700 hover:bg-sky-200"
           @click="toggleSpeak"
+          v-if="speakOn !== null"
         >
           <span v-if="speakOn">
             "/assets/icons/speak.svg"
@@ -59,7 +60,7 @@
       </div>
     </div>
     <div
-      class="info absolute top-24 lg:top-12 left-4 bg-gray-300 dark:bg-gray-700 shadow-lg p-8 rounded-lg z-40"
+      class="info absolute top-24 lg:top-12 left-4 bg-base-300 shadow-lg p-8 rounded-sm z-40"
       v-if="showInfo"
       v-click-outside="closeInfo"
     >
@@ -134,7 +135,7 @@
     </div>
     <div v-if="loading" class="flex pt-[104px] lg:pt-[52px] pb-4 px-5">
       <div
-        class="loader text-white rounded-lg flex items-center"
+        class="loader text-base-content rounded-sm flex items-center"
       >
         <div></div><div></div><div></div>
       </div>
@@ -148,7 +149,7 @@
     >
       <div class="flex flex-col h-full lg:text-xl">
         <div class="flex flex-row grow pt-[75px] lg:pt-[40px]">
-          <div class="bg-white dark:bg-black grow p-8 h-0 min-h-full overflow-y-scroll">
+          <div class="bg-base-100 grow p-8 h-0 min-h-full overflow-y-scroll">
             <div>
               <div v-for="chatMessage in chatLog" class="chat chat-start mb-8 group" v-on:click="speak(getChatMessageText(chatMessage.message), speakOn)">
                 <div
@@ -164,17 +165,17 @@
                 </div>
                 <div
                   v-if="scramble"
-                  class="chat-bubble text-white block group-hover:hidden"
+                  class="chat-bubble text-base-content block group-hover:hidden"
                   v-html="parseChatMessage(chatMessage.message, true)"
                 ></div>
                 <div
                   v-if="scramble"
-                  class="chat-bubble text-white hidden group-hover:block"
+                  class="chat-bubble text-base-content hidden group-hover:block"
                   v-html="parseChatMessage(chatMessage.message)"
                 ></div>
                 <div
                   v-else
-                  class="chat-bubble text-white"
+                  class="chat-bubble text-base-content"
                   v-html="parseChatMessage(chatMessage.message)"
                 ></div>
               </div>
@@ -239,7 +240,7 @@
       @click.self="() => closeAlert()"
     >
       <div
-        class="alert absolute top-0 left-0 rounded-lg p-5 shadow-lg flex"
+        class="alert absolute top-0 left-0 rounded-sm p-5 shadow-lg flex"
         :class="MESSAGE_COLOR_CLASS_MAP[alert.color]"
       >
         <div class="mb-4 text-white flex-1">
@@ -247,7 +248,7 @@
         </div>
         <div class="text-right">
           <button
-            class="close-alert-button p-4 bg-sky-500 dark:bg-sky-600 text-white rounded-lg"
+            class="close-alert-button btn btn-secondary"
             @click="closeAlert"
           >
             Close
@@ -259,7 +260,7 @@
       v-if="showConnectModal"
       class="absolute top-0 right-0 bottom-0 left-0 grid justify-items-center content-center z-20"
     >
-      <div class="card bg-gray-300 dark:bg-gray-700 shadow-xl w-80">
+      <div class="card bg-base-300 shadow-xl w-80">
         <div class="card-body">
           <h1 class="card-title">Connect</h1>
           <div class="my-2">
@@ -305,10 +306,10 @@
       v-if="showGiphyModal"
       class="absolute top-0 right-0 bottom-0 left-0 grid justify-items-center content-center z-20"
     >
-      <div class="card bg-gray-300 dark:bg-gray-700 shadow-xl min-w-80">
+      <div class="card bg-base-300 shadow-xl min-w-80">
         <div class="card-body">
           <h1 class="card-title">Search Giphy</h1>
-          <div class="flex min-h-[100px] bg-black gap-4 p-4">
+          <div class="flex min-h-[100px] bg-white dark:bg-black gap-4 p-4">
             <a class="cursor-pointer" v-for="g in giphies" @click="addGif(g)">
               <img :key="g.id" :src="g.images.fixed_height_small.url" />
             </a>
@@ -328,9 +329,9 @@
     let worker = new Worker('worker.js');
 
     const MESSAGE_COLOR_CLASS_MAP = {
-      default: 'bg-gray-300 dark:bg-gray-700',
-      success: 'bg-green-300 dark:bg-green-700',
-      error: 'bg-red-300 dark:bg-red-700',
+      default: 'bg-base-300',
+      success: 'bg-success',
+      error: 'bg-error',
     };
 
     const CODE_BLOCK_REGEX = /(```[\s\S]*?```\n?)|([^\n]*\n?)/g;
@@ -674,7 +675,6 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000000;
     }
     a {
       color: rgb(67 56 202 / 1);

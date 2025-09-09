@@ -61,17 +61,23 @@ Optionally you can set other options using CLI arguments:
 
 ```sh
 Options:
-      --version        Show version number                             [boolean]
-      --port           Port number to listen on         [number] [default: 3000]
-      --host           Host name to bind to (use '0.0.0.0' to expose to the netw
-                       ork)                      [string] [default: "127.0.0.1"]
-      --secure         Use secure (https/wss) connection
+      --version                    Show version number                 [boolean]
+      --port                       Port number to listen on
+                                                        [number] [default: 3000]
+      --host                       Host name to bind to (use '0.0.0.0' to expose
+                                    to the network)
+                                                 [string] [default: "127.0.0.1"]
+      --secure                     Use secure (https/wss) connection
                                                       [boolean] [default: false]
-      --store          Store chat messages in chats.json
+      --store                      Store chat messages in chats.json
                                                       [boolean] [default: false]
-      --giphy-api-key  Giphy API key (https://developers.giphy.com/docs/api/)
-                                                          [string] [default: ""]
-  -h, --help           Show help                                       [boolean]
+      --speech-synthesis           Turn on speech synthesis
+                                                      [boolean] [default: false]
+      --allow-duplicate-nicknames  Allow duplicate nicknames
+                                                      [boolean] [default: false]
+      --giphy-api-key              Giphy API key (https://developers.giphy.com/d
+                                   ocs/api/)              [string] [default: ""]
+  -h, --help                       Show help                           [boolean]
 ```
 
 And environment variables via `export` command or `.env` file:

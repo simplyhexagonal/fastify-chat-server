@@ -1,6 +1,6 @@
 {
   "name": "@simplyhexagonal/fastify-chat-server",
-  "version": "1.4.2",
+  "version": "2.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/simplyhexagonal/fastify-chat-server"
@@ -23,7 +23,7 @@
     "README.md"
   ],
   "scripts": {
-    "tailwind": "npx tailwindcss -i ./src/tailwind.css -o ./src/assets/css/tailwind.css",
+    "tailwind": "npx @tailwindcss/cli -i ./src/tailwind.css -o ./src/assets/css/tailwind.css",
     "dev": "rm -rf ./dist && mkdir -p dist && ./scripts/dev",
     "build": "rm -rf ./dist && mkdir -p dist && ./scripts/build && cp ./src/worker.js ./dist/worker.js && cp -r ./src/assets ./dist/assets",
     "postbuild": "npx rollup@3.18.0 ./dist/index.js --file ./dist/index.js --format cjs && ./scripts/binify && chmod +x dist/index.js"
@@ -33,10 +33,11 @@
   "devDependencies": {
     "@fastify/websocket": "^8.2.0",
     "@minify-html/node": "^0.11.1",
+    "@tailwindcss/cli": "^4.1.13",
     "@types/node": "^20.5.9",
     "@types/ws": "^8.5.5",
     "axios": "^1.5.0",
-    "daisyui": "^3.6.5",
+    "daisyui": "^5.0.37",
     "dotenv": "^16.3.1",
     "esbuild": "^0.19.2",
     "fastify": "^4.22.2",
@@ -45,6 +46,7 @@
     "node-html-parser": "^6.1.6",
     "nodemon": "^3.0.1",
     "short-unique-id": "^5.0.2",
+    "tailwindcss": "^4.1.7",
     "tslib": "^2.6.2",
     "typescript": "^5.2.2",
     "yargs": "^17.7.2"

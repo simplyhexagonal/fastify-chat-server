@@ -19,4 +19,4 @@ nodemon -w src -e ts,html \
     cp ./src/worker.js ./dist/worker.js && \
     cp -r ./src/assets ./dist/assets && \
     ./scripts/build && \
-    node dist/index.js --host 0.0.0.0"
+    node dist/index.js --host 0.0.0.0 --allow-duplicate-nicknames"
