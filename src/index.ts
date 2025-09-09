@@ -1,12 +1,12 @@
 import 'dotenv/config';
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import fastify from 'fastify';
-import fastifyWebsocket, { SocketStream } from '@fastify/websocket';
+import fastifyWebsocket, { type SocketStream } from '@fastify/websocket';
 import ShortUniqueId from 'short-unique-id';
 
 // @ts-ignore
@@ -30,6 +30,11 @@ const argv = yargs(hideBin(process.argv))
     type: 'string',
     default: '127.0.0.1',
   })
+  .option('secure', {
+    describe: 'Use secure (https/wss) connection',
+    type: 'boolean',
+    default: false,
+  })
   .option('store', {
     describe: 'Store chat messages in chats.json',
     type: 'boolean',
@@ -47,11 +52,16 @@ const argv = yargs(hideBin(process.argv))
 const {
   port,
   host,
+  secure,
   store,
   giphyApiKey,
 } = argv;
 
+const PORT = port || process.env.PORT;
+const HOST = host || process.env.HOST;
+const SECURE = secure || process.env.SECURE;
 const STORE_CHAT = store || process.env.STORE_CHAT;
+const GIPHY_API_KEY = giphyApiKey || process.env.GIPHY_API_KEY;
 
 // const sanitizeErrorString = (errorString: string) => {
 //   return errorString.replaceAll(
@@ -63,7 +73,7 @@ const STORE_CHAT = store || process.env.STORE_CHAT;
 const server = fastify();
 
 let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-const workerJs = fs.readFileSync(path.join(__dirname, 'worker.js'), 'utf8');
+let workerJs = fs.readFileSync(path.join(__dirname, 'worker.js'), 'utf8');
 const chatMessageWav = fs.readFileSync(path.join(__dirname, 'assets/sounds/chat-message.wav'));
 const participantsUpdateWav = fs.readFileSync(path.join(__dirname, 'assets/sounds/participants-update.wav'));
 
@@ -113,6 +123,10 @@ html = html.replace(
 
 html = html.replace('GIPHY_API_KEY', giphyApiKey || process.env.GIPHY_API_KEY);
 
+if (SECURE) {
+  workerJs = workerJs.replace('ws://', 'wss://');
+}
+
 server.register(fastifyWebsocket);
 
 class Room {
@@ -153,14 +167,14 @@ class Room {
     this.clientUids = [...this.clientPongs];
     this.clientPongs = [];
 
-    offlineUids.forEach(
+    for (const offlineUid of offlineUids) {
       (offlineUid) => {
         console.log('Closing connection for:', `${this.clientNicknames.get(offlineUid)} (${offlineUid})`);
         this.clientNicknames.delete(offlineUid);
         this.clientConnections.get(offlineUid)?.socket.close();
         this.clientConnections.delete(offlineUid);
       }
-    );
+    }
 
     if (this.clientConnections.size === 0) {
       console.log('Closing room:', this.roomId);
@@ -243,7 +257,7 @@ server.register(
           data,
         } = JSON.parse(message);
 
-        let chatRawData;
+        let chatRawData: string;
 
         if (!rooms.has(roomId)) {
           let roomPassword = data?.roomPassword;
@@ -320,13 +334,17 @@ server.register(
           room.clientConnections.set(clientUid, connection);
 
           return;
-        } else if (request === 'pong') {
+        }
+
+        if (request === 'pong') {
           if (data?.uid) {
             room.clientPongs.push(data.uid);
           }
 
           return;
-        } else if (request === 'message') {
+        }
+
+        if (request === 'message') {
           const {uid: sender, ...restData} = data;
 
           storeMessage(room, data);
@@ -371,7 +389,7 @@ server.addHook('preHandler', async (request, reply) => {
   // If requested path matches malicious regex return error
   if (`${requestedPath} ${filePath} ${newFileName}`.match(/\.\./g)) {
     console.error(
-      `Malicious request detected:`,
+      'Malicious request detected:',
       {
         requestedPath,
         filePath,

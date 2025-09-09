@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 require('dotenv').config();
-const fs = require('fs');
+const fs = require('node:fs');
 const { build } = require('esbuild');
 const { parse: parseHtml } = require('node-html-parser');
 const axios = require('axios');
@@ -10,7 +10,7 @@ const { minify } = require('@minify-html/node');
 const isDev = process.env.NODE_ENV === 'dev';
 const livePort = process.env.LIVE_PORT || 35729;
 
-const fileSrcPath = `src/index.ts`;
+const fileSrcPath = 'src/index.ts';
 const fileDir = (
   fileSrcPath === 'src/index.ts'
 ) ? (
@@ -22,7 +22,7 @@ const fileName = fileSrcPath.replace(/^.+\/([^\/]+).ts$/, '$1');
 
 const outfile = `./dist/${fileDir}${fileName}.js`;
 
-let htmlEmbedPlugin = {
+const htmlEmbedPlugin = {
   name: 'example',
   async setup(currentBuild) {
     // Load ".txt" files and return an array of words
@@ -33,7 +33,7 @@ let htmlEmbedPlugin = {
       ) => {
         let contents = fs.readFileSync(tsPath, 'utf8');
 
-        let html = fs.readFileSync('./src/index.html', 'utf8');
+        const html = fs.readFileSync('./src/index.html', 'utf8');
 
         const parsedHtml = parseHtml(html);
 
@@ -107,8 +107,12 @@ const options = {
 
 const main = async () => {
   const { errors, warnings } = await build(options);
-  warnings.forEach((w) => console.warn(w));
-  errors.forEach((e) => console.error(e));
+  for (const w of warnings) {
+    console.warn(w);
+  }
+  for (const e of errors) {
+    console.error(e);
+  }
 };
 
 main();

@@ -8,6 +8,7 @@ class WorkerInstance {
 
 const workerInstance = new WorkerInstance();
 
+// biome-ignore lint/suspicious/noGlobalAssign: <explanation>
 onmessage = (event) => {
   if (Object.hasOwn(event.data, 'request')) {
     const { request } = event.data;
