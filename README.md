@@ -73,6 +73,8 @@ Options:
                                                       [boolean] [default: false]
       --speech-synthesis           Turn on speech synthesis
                                                       [boolean] [default: false]
+      --sounds                     Turn on message and participants update sound
+                                   s                  [boolean] [default: false]
       --allow-duplicate-nicknames  Allow duplicate nicknames
                                                       [boolean] [default: false]
       --giphy-api-key              Giphy API key (https://developers.giphy.com/d

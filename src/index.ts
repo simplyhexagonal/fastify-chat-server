@@ -45,6 +45,11 @@ const argv = yargs(hideBin(process.argv))
     type: 'boolean',
     default: false,
   })
+  .option('sounds', {
+    describe: 'Turn on message and participants update sounds',
+    type: 'boolean',
+    default: false,
+  })
   .option('allow-duplicate-nicknames', {
     describe: 'Allow duplicate nicknames',
     type: 'boolean',
@@ -65,6 +70,7 @@ const {
   secure,
   store,
   speechSynthesis,
+  sounds,
   allowDuplicateNicknames,
   giphyApiKey,
 } = argv;
@@ -74,6 +80,7 @@ const HOST = host || process.env.HOST;
 const SECURE = secure || process.env.SECURE;
 const STORE_CHAT = store || process.env.STORE_CHAT;
 const SPEECH_SYNTHESIS = speechSynthesis || process.env.SPEECH_SYNTHESIS;
+const SOUNDS = sounds || process.env.SOUNDS;
 const ALLOW_DUPLICATE_NICKNAMES = allowDuplicateNicknames || process.env.ALLOW_DUPLICATE_NICKNAMES;
 const GIPHY_API_KEY = giphyApiKey || process.env.GIPHY_API_KEY;
 
@@ -142,6 +149,10 @@ console.log('SPEECH_SYNTHESIS', SPEECH_SYNTHESIS);
 if (!SPEECH_SYNTHESIS) {
   html = html.replace('!this.speakOn', 'null');
   html = html.replace('speakOn: true', 'speakOn: null');
+}
+
+if (SOUNDS) {
+  html = html.replace('soundOn: false', 'soundOn: true');
 }
 
 if (SECURE) {

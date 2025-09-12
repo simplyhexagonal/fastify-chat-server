@@ -354,7 +354,7 @@
     utterance.voice = synth.getVoices().find(({voiceURI}) => voiceURI === 'Google US English');
 
     const speak = (textToSpeak, speakOn) => {
-      if (speakOn === false) {
+      if (!speakOn) {
         return;
       }
 
@@ -377,6 +377,7 @@
           showParticipants: window.innerWidth > 768,
           scramble: false,
           speakOn: true,
+          soundOn: false,
           alert: {
             text: '',
             color: 'default',
@@ -527,9 +528,17 @@
           this.speakOn = !this.speakOn;
         },
         playChatMessageSound() {
+          if (!this.soundOn) {
+            return;
+          }
+
           this.$refs.chatMessageWav.play();
         },
         playParticipantsUpdateSound() {
+          if (!this.soundOn) {
+            return;
+          }
+
           this.$refs.participantsUpdateWav.play();
         },
       },
