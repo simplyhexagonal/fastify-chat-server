@@ -165,17 +165,17 @@
                 </div>
                 <div
                   v-if="scramble"
-                  class="chat-bubble text-base-content block group-hover:hidden"
+                  class="chat-bubble prose text-base-content block group-hover:hidden"
                   v-html="parseChatMessage(chatMessage.message, true)"
                 ></div>
                 <div
                   v-if="scramble"
-                  class="chat-bubble text-base-content hidden group-hover:block"
+                  class="chat-bubble prose text-base-content hidden group-hover:block"
                   v-html="parseChatMessage(chatMessage.message)"
                 ></div>
                 <div
                   v-else
-                  class="chat-bubble text-base-content"
+                  class="chat-bubble prose text-base-content"
                   v-html="parseChatMessage(chatMessage.message)"
                 ></div>
               </div>
