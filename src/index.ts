@@ -8,6 +8,7 @@ import { hideBin } from 'yargs/helpers';
 import fastify from 'fastify';
 import fastifyWebsocket, { type SocketStream } from '@fastify/websocket';
 import ShortUniqueId from 'short-unique-id';
+import axios from 'axios';
 
 // @ts-ignore
 import {version} from '../package.json';
@@ -60,6 +61,26 @@ const argv = yargs(hideBin(process.argv))
     type: 'string',
     default: '',
   })
+  .option('cms-token-endpoint', {
+    describe: 'CMS token endpoint',
+    type: 'string',
+    default: '',
+  })
+  .option('cms-username', {
+    describe: 'CMS username',
+    type: 'string',
+    default: '',
+  })
+  .option('cms-password', {
+    describe: 'CMS password',
+    type: 'string',
+    default: '',
+  })
+  .option('cms-upload-endpoint', {
+    describe: 'CMS upload endpoint',
+    type: 'string',
+    default: '',
+  })
   .help()
   .alias('help', 'h')
   .argv;
@@ -73,6 +94,10 @@ const {
   sounds,
   allowDuplicateNicknames,
   giphyApiKey,
+  cmsTokenEndpoint,
+  cmsUsername,
+  cmsPassword,
+  cmsUploadEndpoint,
 } = argv;
 
 const PORT = port || process.env.PORT;
@@ -83,6 +108,10 @@ const SPEECH_SYNTHESIS = speechSynthesis || process.env.SPEECH_SYNTHESIS;
 const SOUNDS = sounds || process.env.SOUNDS;
 const ALLOW_DUPLICATE_NICKNAMES = allowDuplicateNicknames || process.env.ALLOW_DUPLICATE_NICKNAMES;
 const GIPHY_API_KEY = giphyApiKey || process.env.GIPHY_API_KEY;
+const CMS_TOKEN_ENDPOINT = cmsTokenEndpoint || process.env.CMS_TOKEN_ENDPOINT;
+const CMS_USERNAME = cmsUsername || process.env.CMS_USERNAME;
+const CMS_PASSWORD = cmsPassword || process.env.CMS_PASSWORD;
+const CMS_UPLOAD_ENDPOINT = cmsUploadEndpoint || process.env.CMS_UPLOAD_ENDPOINT;
 
 // const sanitizeErrorString = (errorString: string) => {
 //   return errorString.replaceAll(
@@ -157,6 +186,10 @@ if (SOUNDS) {
 
 if (SECURE) {
   workerJs = workerJs.replace('ws://', 'wss://');
+}
+
+if (CMS_TOKEN_ENDPOINT && CMS_UPLOAD_ENDPOINT) {
+  html = html.replace('uploadEndpoint: \'\',', `uploadEndpoint: \'${CMS_UPLOAD_ENDPOINT}\',`);
 }
 
 server.register(fastifyWebsocket);
@@ -405,6 +438,50 @@ server.register(
         }
       });
     });
+
+    fastifyInstance.post(
+      '/api/auth',
+      async (request, reply) => {
+        const { roomId, roomPassword } = request.body as any;
+        const room = rooms.get(roomId);
+
+        if (!room.verifyPassword(roomPassword)) {
+          return;
+        }
+
+        console.log('CMS_TOKEN_ENDPOINT', CMS_TOKEN_ENDPOINT);
+        console.log('CMS_USERNAME', CMS_USERNAME);
+        console.log('CMS_PASSWORD', CMS_PASSWORD);
+
+        const response = await axios.post(CMS_TOKEN_ENDPOINT, {
+          email: CMS_USERNAME,
+          password: CMS_PASSWORD,
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }).catch((error) => {
+          console.error('Error getting upload bearer token:', error);
+          return { data: {} };
+        });
+
+        if (!response.data.token) {
+          reply.status(500).send('Internal Server Error');
+
+          return;
+        }
+
+        const token = response.data.token;
+
+        reply.type('application/json').send(
+          JSON.stringify(
+            {
+              token,
+            }
+          )
+        );
+      }
+    );
   }
 );
 

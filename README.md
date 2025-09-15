@@ -79,6 +79,10 @@ Options:
                                                       [boolean] [default: false]
       --giphy-api-key              Giphy API key (https://developers.giphy.com/d
                                    ocs/api/)              [string] [default: ""]
+      --cms-token-endpoint         CMS token endpoint     [string] [default: ""]
+      --cms-username               CMS username           [string] [default: ""]
+      --cms-password               CMS password           [string] [default: ""]
+      --cms-upload-endpoint        CMS upload endpoint    [string] [default: ""]
   -h, --help                       Show help                           [boolean]
 ```
 
