@@ -492,7 +492,7 @@
           return div.innerText;
         },
         parseChatMessage(message, scramble) {
-          let htmlMessage = marked.parse(message);
+          let htmlMessage = marked.parse(message).replace(/<a ([^>]*>)/g, '<a target="_blank" $1');
 
           if (scramble) {
             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
