@@ -337,6 +337,8 @@
 
   "/assets/js/code-copy.js"
   <script>
+    import debounce from 'lodash.debounce';
+
     const { createApp } = Vue;
 
     let worker = new Worker('worker.js');
@@ -733,6 +735,16 @@
             return;
           }
         };
+        document.addEventListener('load', (event) => {
+          const target = event.target;
+          if (target && target.tagName === 'IMG') {
+            // console.log('Image finished loading:', target.currentSrc || target.src);
+            setTimeout(
+              () => this.$refs.chatLogBottom.scrollIntoView({ behavior: 'smooth' }),
+              100,
+            );
+          }
+        }, true);
       },
       updated() {
         const preElementsWithoutCopyBtn = document.querySelectorAll('pre:not(.has-copy-btn)');
