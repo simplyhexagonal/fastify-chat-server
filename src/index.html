@@ -180,6 +180,19 @@
                 ></div>
               </div>
             </div>
+            <div v-if="isTyping" class="chat chat-start mb-8">
+              <div class="chat-header text-lg font-bold">
+                {{ typingNickname || 'Someone' }}
+                <time class="text-sm opacity-50">typing…</time>
+              </div>
+              <div class="chat-bubble prose text-base-content">
+                <span class="typing inline-flex gap-1">
+                  <span class="dot w-2 h-2 rounded-full bg-current opacity-40"></span>
+                  <span class="dot w-2 h-2 rounded-full bg-current opacity-60"></span>
+                  <span class="dot w-2 h-2 rounded-full bg-current opacity-80"></span>
+                </span>
+              </div>
+            </div>
             <div ref="chatLogBottom"></div>
           </div>
           <div
@@ -339,9 +352,22 @@
 
   "/assets/js/code-copy.js"
   <script>
-    import debounce from 'lodash.debounce';
-
     const { createApp } = Vue;
+
+    function debounce(fn, wait) {
+      let inCooldown = false;
+      let timeout;
+      return function() {
+        if (!inCooldown) {
+          fn.apply(this, arguments);
+          inCooldown = true;
+          clearTimeout(timeout);
+          timeout = setTimeout(function() {
+            inCooldown = false;
+          }, wait);
+        }
+      };
+    }
 
     let worker = new Worker('worker.js');
 
@@ -415,24 +441,15 @@
           isUploading: false,
           isTyping: false,
           typingTimeout: null,
+          typingNickname: '',
         }
       ),
       methods: {
         onChatInput() {
-          // broadcast typing
+          worker.postMessage({ request: 'typing' });
+          this.onTyping();
         },
         onChatInputDebounced() {},
-        onTyping() {
-          this.isTyping = true;
-
-          if (this.typingTimeout) {
-            clearTimeout(this.typingTimeout);
-          }
-
-          this.typingTimeout = setTimeout(() => {
-            this.isTyping = false;
-          }, 1500);
-        },
         toggleInfo() {
           this.showInfo = !this.showInfo;
         },
@@ -738,6 +755,24 @@
             return;
           }
 
+          if (broadcast && broadcast === 'typing') {
+            if (data.sender !== this.uid) {
+              this.typingNickname = data.senderNickname || this.nicknameFromUid(data.sender) || 'Someone';
+              if (!this.isTyping) {
+                setTimeout(() => this.$refs.chatLogBottom.scrollIntoView({ behavior: 'smooth' }), 100);
+              }
+              this.isTyping = true;
+              if (this.typingTimeout) {
+                clearTimeout(this.typingTimeout);
+              }
+              this.typingTimeout = setTimeout(() => {
+                this.isTyping = false;
+              }, 1500);
+            }
+
+            return;
+          }
+
           if (broadcast && broadcast === 'chatLog') {
             this.chatLog = data.chatLog;
 
@@ -888,6 +923,15 @@
     }
     .chat-bubble pre .copy-btn span {
       display: none;
+    }
+    .typing .dot {
+      animation: blink 1.2s infinite ease-in-out;
+    }
+    .typing .dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
     }
     @keyframes loader {
       0% {

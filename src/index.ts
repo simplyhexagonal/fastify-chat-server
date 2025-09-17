@@ -410,6 +410,28 @@ server.register(
           return;
         }
 
+        if (request === 'typing') {
+          const { uid: sender } = data;
+
+          room.clientConnections.forEach(
+            (clientConnection, _) => {
+              clientConnection.socket.send(
+                JSON.stringify(
+                  {
+                    broadcast: 'typing',
+                    data: {
+                      sender,
+                      senderNickname: room.clientNicknames.get(sender),
+                    },
+                  },
+                ),
+              );
+            }
+          );
+
+          return;
+        }
+
         if (request === 'message') {
           const {uid: sender, ...restData} = data;
 

@@ -97,6 +97,18 @@ onmessage = (event) => {
           return;
         }
 
+        if (broadcast && broadcast === 'typing') {
+          postMessage({
+            broadcast,
+            data: {
+              ...data,
+              uid: workerInstance.uid,
+            },
+          });
+
+          return;
+        }
+
         if (broadcast && broadcast === 'chatLog') {
           postMessage({
             broadcast,
@@ -128,6 +140,21 @@ onmessage = (event) => {
             request: 'message',
             data: {
               ...data,
+              uid: workerInstance.uid,
+            },
+          },
+        ),
+      );
+
+      return;
+    }
+
+    if (request === 'typing') {
+      ws.send(
+        JSON.stringify(
+          {
+            request: 'typing',
+            data: {
               uid: workerInstance.uid,
             },
           },
