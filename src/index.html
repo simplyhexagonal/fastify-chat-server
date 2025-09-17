@@ -229,11 +229,13 @@
             <textarea
               class="textarea w-full h-full text-xl hidden lg:block"
               v-model="chatMessage"
+              @input="onChatInputDebounced"
               @keydown.enter.exact="sendMessage"
             ></textarea>
             <textarea
               class="textarea w-full h-full lg:hidden"
               v-model="chatMessage"
+              @input="onChatInputDebounced"
             ></textarea>
           </div>
           <div class="flex items-center justify-center pr-2 lg:pr-8">
@@ -411,9 +413,26 @@
           uploadEndpoint: '',
           uploadBearerToken: '',
           isUploading: false,
+          isTyping: false,
+          typingTimeout: null,
         }
       ),
       methods: {
+        onChatInput() {
+          // broadcast typing
+        },
+        onChatInputDebounced() {},
+        onTyping() {
+          this.isTyping = true;
+
+          if (this.typingTimeout) {
+            clearTimeout(this.typingTimeout);
+          }
+
+          this.typingTimeout = setTimeout(() => {
+            this.isTyping = false;
+          }, 1500);
+        },
         toggleInfo() {
           this.showInfo = !this.showInfo;
         },
@@ -641,6 +660,7 @@
         },
       },
       mounted() {
+        this.onChatInputDebounced = debounce(this.onChatInput, 1000);
         worker.onmessage = (event) => {
           const {
             request,
